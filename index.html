@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NordicPacker - Marcha Nórdica</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      .card-box { border: 1px solid #ddd !important; box-shadow: none !important; margin-bottom: 1.5rem; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 min-h-screen flex flex-col font-sans">
+
+  <header class="bg-emerald-900 text-white py-5 px-6 shadow-md border-b-4 border-amber-600">
+    <div class="max-w-5xl mx-auto flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-amber-600/20 p-2.5 rounded-xl border border-amber-500/30 text-amber-400 text-2xl">
+          <i class="fa-solid fa-person-walking"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-black tracking-wide flex items-center gap-2">
+            NORDIC<span class="text-amber-400">PACKER</span>
+          </h1>
+          <p class="text-xs text-emerald-200 uppercase tracking-widest font-semibold">Marcha Nórdica · Planificación Educativa</p>
+        </div>
+      </div>
+      <div class="no-print">
+        <button onclick="window.print()" class="bg-amber-600 hover:bg-amber-700 text-stone-900 text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 shadow transition">
+          <i class="fa-solid fa-file-pdf"></i> Imprimir / PDF
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto p-4 md:p-6 w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Formulario -->
+    <section class="lg:col-span-5 space-y-5 no-print">
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
+        <h2 class="text-base font-bold text-stone-800 flex items-center gap-2 border-b border-stone-100 pb-2">
+          <i class="fa-solid fa-mountain text-emerald-700"></i> Planificación de la Salida
+        </h2>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Lugar de Salida</label>
+          <input type="text" id="origen" value="Torla" class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Destino o Hito</label>
+          <input type="text" id="destino" value="Cola de Caballo" class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Fecha</label>
+            <input type="date" id="fecha" class="w-full border border-stone-300 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-emerald-700">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Hora Inicio</label>
+            <input type="time" id="hora" value="08:30" class="w-full border border-stone-300 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-emerald-700">
+          </div>
+        </div>
+
+        <div class="bg-stone-50 p-3 rounded-xl border border-stone-200">
+          <label class="block text-xs font-bold text-stone-700 uppercase mb-2">Modalidad</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-stone-200 cursor-pointer text-xs font-semibold">
+              <input type="radio" name="modalidad" value="individual" checked onchange="toggleModalidadUI()" class="text-emerald-700 focus:ring-emerald-600">
+              <span><i class="fa-solid fa-person mr-1 text-emerald-700"></i> Individual</span>
+            </label>
+            <label class="flex items
