@@ -82,12 +82,12 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Lesiones, Ritmo o Condicionantes</label>
-          <textarea id="contextoFisico" rows="3" placeholder="Ej: Participante con pulsaciones elevadas..." class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700"></textarea>
+          <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Condicionantes, Ritmo o Salud</label>
+          <textarea id="contextoFisico" rows="3" placeholder="Ej: Dos participantes con molestias en menisco y previsión de bajada pedregosa..." class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700">Participante con tendencia a pulsaciones elevadas en esfuerzo continuado.</textarea>
         </div>
 
         <button onclick="analizarRuta()" id="btnAccion" class="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm rounded-xl shadow transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> Analizar Ruta y Generar Mochilas
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Analizar Ruta y Configurar Mochila
         </button>
       </div>
 
@@ -98,7 +98,7 @@
         </h3>
         <div id="chatBox" class="max-h-48 overflow-y-auto space-y-2 text-xs p-2 bg-stone-50 rounded-lg border border-stone-100"></div>
         <div class="flex gap-2">
-          <input type="text" id="chatInput" placeholder="Haz una consulta o aclara dudas..." class="flex-1 border border-stone-300 rounded-lg p-2 text-xs outline-none" onkeypress="if(event.key==='Enter') enviarMensaje()">
+          <input type="text" id="chatInput" placeholder="Pregunta sobre bastones, técnica, dosificación de esfuerzo..." class="flex-1 border border-stone-300 rounded-lg p-2 text-xs outline-none" onkeypress="if(event.key==='Enter') enviarMensaje()">
           <button onclick="enviarMensaje()" class="bg-emerald-800 text-white px-3 py-2 rounded-lg text-xs hover:bg-emerald-900">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
@@ -134,23 +134,28 @@
           </div>
           <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-200">
             <span class="block text-[11px] font-bold text-stone-500 uppercase">Dificultad</span>
-            <span class="text-sm font-black text-stone-800" id="resDificultad">Estimando</span>
+            <span class="text-sm font-black text-stone-800" id="resDificultad">Pendiente</span>
           </div>
         </div>
 
         <div id="alertaSeguridad" class="mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-xs leading-relaxed hidden"></div>
       </div>
 
-      <!-- Listas de Mochila -->
+      <!-- Listas de Mochila adaptadas -->
       <div class="space-y-4">
         <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm card-box">
-          <div class="flex justify-between items-center mb-3">
+          <div class="flex justify-between items-center mb-2">
             <h3 class="text-sm font-bold uppercase text-stone-800 flex items-center gap-2" id="tituloMochilaPrincipal">
               <i class="fa-solid fa-user text-emerald-700"></i> Mochila del Participante
             </h3>
             <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full" id="contadorInd">0 / 0</span>
           </div>
-          <div id="listaInd" class="space-y-2"></div>
+          <p class="text-xs text-stone-500 mb-3" id="subtituloInd">Material adaptado al terreno, meteorología y perfil físico.</p>
+          <div id="listaInd" class="space-y-2">
+            <div class="text-xs text-stone-400 italic p-3 text-center bg-stone-50 rounded-xl border border-stone-100">
+              Pulsa en «Analizar Ruta» para confeccionar la mochila a medida.
+            </div>
+          </div>
         </div>
 
         <div id="bloqueMonitor" class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm card-box">
@@ -160,8 +165,12 @@
             </h3>
             <span class="text-xs bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full" id="contadorMon">0 / 0</span>
           </div>
-          <p class="text-xs text-stone-500 mb-3">Material de seguridad colectiva, botiquín grupal y recambios técnicos de bastones.</p>
-          <div id="listaMon" class="space-y-2"></div>
+          <p class="text-xs text-stone-500 mb-3">Equipo de seguridad colectiva, repuestos técnicos y botiquín de grupo.</p>
+          <div id="listaMon" class="space-y-2">
+            <div class="text-xs text-stone-400 italic p-3 text-center bg-stone-50 rounded-xl border border-stone-100">
+              Pulsa en «Analizar Ruta» para generar el material colectivo.
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -169,27 +178,6 @@
 
   <script>
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
-
-    const baseInd = [
-      { text: "Bastones de marcha nórdica (tramo rígido y dragonera ergonómica)", cat: "NW" },
-      { text: "Puntas de tungsteno + Almohadillas / Pads de asfalto accesibles", cat: "NW" },
-      { text: "Calzado flexible de flexión metatarsiana y buen taqueado", cat: "Calzado" },
-      { text: "Sistema de hidratación (1.5L mínimo) accesible en marcha", cat: "Hidratación" },
-      { text: "Capa impermeable / Cortavientos transpirable", cat: "Ropa" },
-      { text: "Botiquín personal (compeed, antiséptico, apósitos)", cat: "Seguridad" },
-      { text: "Frutos secos / Barritas energéticas de absorción lenta", cat: "Nutrición" },
-      { text: "Teléfono móvil con batería completa", cat: "Seguridad" }
-    ];
-
-    const baseMon = [
-      { text: "Botiquín grupal avanzado (tijeras, férula sam, vendas elásticas, gasas)", cat: "Seguridad" },
-      { text: "Mantas térmicas de repuesto (mínimo 2 unidades)", cat: "Seguridad" },
-      { text: "Juego de dragoneras de recambio (tallas S/M y M/L)", cat: "NW" },
-      { text: "Pads de asfalto adicionales para participantes", cat: "NW" },
-      { text: "Silbato de montaña de alta potencia (120 dB)", cat: "Seguridad" },
-      { text: "Ficha del grupo con teléfonos de contacto y antecedentes médicos", cat: "Gestión" },
-      { text: "Frontal con carga completa o pilas de repuesto", cat: "Seguridad" }
-    ];
 
     function toggleModalidadUI() {
       const esGrupo = document.querySelector('input[name="modalidad"]:checked').value === 'grupo';
@@ -203,6 +191,11 @@
     function pintarItems(contenedorId, items, tipo) {
       const cont = document.getElementById(contenedorId);
       cont.innerHTML = '';
+      if (!items || items.length === 0) {
+        cont.innerHTML = '<div class="text-xs text-stone-400 italic p-2">Sin elementos específicos requeridos.</div>';
+        actualizarContadores(tipo);
+        return;
+      }
       items.forEach((item) => {
         const div = document.createElement('div');
         div.className = "flex items-center justify-between p-2.5 bg-stone-50 hover:bg-stone-100 rounded-xl border border-stone-200 text-xs transition";
@@ -233,9 +226,6 @@
       document.getElementById(badgeId).innerText = `${marcados} / ${total}`;
     }
 
-    pintarItems('listaInd', baseInd, 'ind');
-    pintarItems('listaMon', baseMon, 'mon');
-
     async function obtenerMeteo(lat, lon) {
       try {
         const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation,wind_speed_10m&timezone=auto`);
@@ -263,12 +253,13 @@
       document.getElementById('resTitulo').innerText = `${orig} ➔ ${dest}`;
       document.getElementById('resFecha').innerText = `Fecha: ${fecha} · Salida: ${hora} h`;
 
-      // Meteo
+      let datosMeteoTexto = "No disponible";
       try {
         const geo = await geolocalizar(dest);
         if (geo) {
           const m = await obtenerMeteo(geo.latitude, geo.longitude);
           if (m) {
+            datosMeteoTexto = `Temperatura: ${m.temperature_2m}°C, Viento: ${m.wind_speed_10m} km/h, Precipitación: ${m.precipitation} mm`;
             document.getElementById('resTemp').innerText = `${m.temperature_2m}°C`;
             document.getElementById('resMeteo').innerText = `Viento: ${m.wind_speed_10m} km/h · Precip: ${m.precipitation} mm`;
           }
@@ -278,19 +269,39 @@
       }
 
       const btn = document.getElementById('btnAccion');
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analizando con IA segura...';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Confeccionando mochilas contextuales...';
       btn.disabled = true;
 
-      const promptSistema = `Analiza como instructor de marcha nórdica la ruta de "${orig}" a "${dest}". Modalidad: ${mod}. Condicionantes: "${ctx}".
-Devuelve exclusivamente un JSON con:
+      const promptSistema = `Actúa como instructor experto en marcha nórdica (técnica, material específico y seguridad federativa).
+Analiza esta salida planificada:
+- Origen: "${orig}"
+- Destino/Hito: "${dest}"
+- Fecha: ${fecha} (hora de salida: ${hora})
+- Meteorología en destino: ${datosMeteoTexto}
+- Modalidad: ${mod}
+- Condicionantes físicos / salud: "${ctx}"
+
+GENERA LA MOCHILA COMPLETA Y CONTEXTUALIZADA (no una lista genérica):
+1. Adapta el material técnico de marcha nórdica (tipo de bastón, puntas de tungsteno vs pads según el terreno esperado en esa ruta).
+2. Adapta la ropa y capas a la temperatura real, viento y riesgo de lluvia.
+3. Si la hora de salida o duración implican riesgo de noche, incluye frontal.
+4. En nutrición/hidratación, ajusta el volumen a la duración, desnivel y temperatura.
+5. Adapta elementos específicos a los condicionantes de salud descritos (ej. pulsómetro, vendajes, descansos, sales).
+6. Si la modalidad es "grupo", detalla en la mochila del monitor el botiquín grupal, piezas de recambio de bastones (dragoneras, tacos) y material de seguridad colectiva.
+
+Devuelve EXCLUSIVAMENTE este JSON:
 {
   "km": "km aprox",
   "desnivel": "+X m",
-  "tiempo": "tiempo estimado MN",
+  "tiempo": "tiempo estimado en marcha nórdica",
   "dificultad": "Baja, Media o Alta",
-  "seguridad": "consejos técnicos de marcha nórdica y seguridad",
-  "extra_individual": [{"text": "elemento específico", "cat": "NW o Seguridad o Salud"}],
-  "extra_monitor": [{"text": "elemento colectivo", "cat": "Seguridad o Gestión"}]
+  "seguridad": "consejos pedagógicos sobre técnica de bastoneo, ritmo y prevención específicos para esta ruta y salud",
+  "mochila_individual": [
+    {"text": "descripción concreta del elemento adaptado", "cat": "NW | Ropa | Hidratación | Nutrición | Seguridad | Salud"}
+  ],
+  "mochila_monitor": [
+    {"text": "descripción de material de guía/grupo", "cat": "Seguridad | Recambios NW | Gestión"}
+  ]
 }`;
 
       try {
@@ -322,17 +333,18 @@ Devuelve exclusivamente un JSON con:
           alerta.classList.remove('hidden');
         }
 
-        pintarItems('listaInd', [...baseInd, ...(resJSON.extra_individual || [])], 'ind');
-        pintarItems('listaMon', [...baseMon, ...(resJSON.extra_monitor || [])], 'mon');
+        // Pintamos directamente las mochilas personalizadas devueltas por la IA
+        pintarItems('listaInd', resJSON.mochila_individual || [], 'ind');
+        pintarItems('listaMon', resJSON.mochila_monitor || [], 'mon');
 
         document.getElementById('chatSection').classList.remove('hidden');
-        agregarMensaje('asistente', `He generado la planificación para ${dest}. ¿Deseas hacer alguna consulta técnica sobre bastones, técnica de impulso o pulsaciones?`);
+        agregarMensaje('asistente', `He confeccionado la mochila para ${dest} teniendo en cuenta las condiciones actuales y los condicionantes físicos. ¿Quieres profundizar en la técnica de impulso o en la gestión de pulsaciones en las subidas?`);
 
       } catch(e) {
         console.error("Error en análisis:", e);
-        alert(`Error al contactar con la IA: ${e.message}`);
+        alert(`Aviso: ${e.message}`);
       } finally {
-        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analizar Ruta y Generar Mochilas';
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analizar Ruta y Configurar Mochila';
         btn.disabled = false;
       }
     }
@@ -353,6 +365,8 @@ Devuelve exclusivamente un JSON con:
             prompt: `Eres un instructor de marcha nórdica y seguridad en montaña. Responde de forma pedagógica, concisa y rigurosa a: "${msg}"`
           })
         });
+
+        if (!response.ok) throw new Error("Error en la comunicación.");
 
         const data = await response.json();
         const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo obtener respuesta.";
