@@ -274,16 +274,17 @@
 
       document.getElementById('btnAccion').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analizando con IA segura...';
 
-      const promptSistema = `Actúa como instructor experto de marcha nórdica y seguridad en montaña. Analiza la salida de "${orig}" hacia "${dest}". Modalidad: ${mod}. Lesiones y condicionantes: "${ctx}". Devuelve exclusivamente un JSON plano con este esquema:
-      {
-        "km": "distancia aprox",
-        "desnivel": "+X m",
-        "tiempo": "tiempo estimado en marcha nórdica",
-        "dificultad": "Baja/Media/Alta",
-        "seguridad": "observaciones preventivas breves para articulaciones o terreno",
-        "extra_individual": [{"text": "...", "cat": "..."}],
-        "extra_monitor": [{"text": "...", "cat": "..."}]
-      }`;
+      const promptSistema = `Actúa como instructor técnico de marcha nórdica y seguridad en montaña. Analiza la ruta desde "${orig}" hasta "${dest}". Modalidad: ${mod}. Perfil y condicionantes físicos: "${ctx}".
+Responde obligatoriamente en formato JSON válido con esta estructura exacta:
+{
+  "km": "valor numérico con km",
+  "desnivel": "+X m",
+  "tiempo": "tiempo estimado en marcha nórdica",
+  "dificultad": "Baja, Media o Alta",
+  "seguridad": "consejos de técnica de marcha nórdica o seguridad específicos",
+  "extra_individual": [{"text": "elemento específico", "cat": "NW o Seguridad o Salud"}],
+  "extra_monitor": [{"text": "elemento de grupo", "cat": "Seguridad o Gestión"}]
+}`;
 
       try {
         const response = await fetch('/api/chat', {
@@ -292,11 +293,22 @@
           body: JSON.stringify({ prompt: promptSistema })
         });
 
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error?.message || errData.error || `Error ${response.status} en el servidor`);
+        }
+
         const data = await response.json();
-        const textoLimpio = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+        const textoRespuesta = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (!textoRespuesta) {
+          throw new Error("Gemini no devolvió texto.");
+        }
+
+        const textoLimpio = textoRespuesta.replace(/```json|```/g, '').trim();
         const resJSON = JSON.parse(textoLimpio);
 
-        document.getElementById('resDesnivel').innerText = `${resJSON.km} km · ${resJSON.desnivel}`;
+        document.getElementById('resDesnivel').innerText = `${resJSON.km} · ${resJSON.desnivel}`;
         document.getElementById('resTiempo').innerText = resJSON.tiempo;
         document.getElementById('resDificultad').innerText = resJSON.dificultad;
 
@@ -310,10 +322,11 @@
         pintarItems('listaMon', [...baseMon, ...(resJSON.extra_monitor || [])], 'mon');
 
         document.getElementById('chatSection').classList.remove('hidden');
-        agregarMensaje('asistente', `He generado la planificación para ${dest}. ¿Deseas hacer alguna consulta técnica sobre bastones o descansos?`);
+        agregarMensaje('asistente', `He generado la planificación para ${dest}. ¿Deseas hacer alguna consulta técnica sobre bastones, técnica de impulso o descansos?`);
 
       } catch(e) {
-        console.error(e);
+        console.error("Error capturado:", e);
+        alert(`Aviso del sistema: ${e.message}`);
       } finally {
         document.getElementById('btnAccion').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analizar Ruta y Generar Mochilas';
       }
@@ -335,8 +348,11 @@
             prompt: `Eres un instructor de marcha nórdica y seguridad en montaña. Responde de forma pedagógica, concisa y rigurosa a: "${msg}"`
           })
         });
+
+        if (!response.ok) throw new Error("Error en la comunicación.");
+
         const data = await response.json();
-        const reply = data.candidates[0].content.parts[0].text;
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo obtener respuesta.";
         agregarMensaje('asistente', reply);
       } catch(e) {
         agregarMensaje('asistente', 'Hubo un error de conexión con el asistente.');
