@@ -48,7 +48,7 @@
 
         <div>
           <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Lugar de Salida</label>
-          <input type="text" id="origen" value="Torla" class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700">
+          <input type="text" id="origen" value="Pradera de Ordesa" class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700">
         </div>
 
         <div>
@@ -83,7 +83,7 @@
 
         <div>
           <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Condicionantes, Ritmo o Salud</label>
-          <textarea id="contextoFisico" rows="3" placeholder="Ej: Dos participantes con molestias en menisco y previsión de bajada pedregosa..." class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700">Participante con tendencia a pulsaciones elevadas en esfuerzo continuado.</textarea>
+          <textarea id="contextoFisico" rows="3" placeholder="Ej: Participante con pulsaciones elevadas..." class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700">Participante con tendencia a pulsaciones elevadas en esfuerzo continuado.</textarea>
         </div>
 
         <button onclick="analizarRuta()" id="btnAccion" class="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm rounded-xl shadow transition flex items-center justify-center gap-2">
@@ -98,7 +98,7 @@
         </h3>
         <div id="chatBox" class="max-h-48 overflow-y-auto space-y-2 text-xs p-2 bg-stone-50 rounded-lg border border-stone-100"></div>
         <div class="flex gap-2">
-          <input type="text" id="chatInput" placeholder="Pregunta sobre bastones, técnica, dosificación de esfuerzo..." class="flex-1 border border-stone-300 rounded-lg p-2 text-xs outline-none" onkeypress="if(event.key==='Enter') enviarMensaje()">
+          <input type="text" id="chatInput" placeholder="Pregunta sobre bastones, técnica, descansos..." class="flex-1 border border-stone-300 rounded-lg p-2 text-xs outline-none" onkeypress="if(event.key==='Enter') enviarMensaje()">
           <button onclick="enviarMensaje()" class="bg-emerald-800 text-white px-3 py-2 rounded-lg text-xs hover:bg-emerald-900">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
@@ -114,7 +114,7 @@
             <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200" id="badgeModalidad">
               Grupo con Monitor
             </span>
-            <h2 class="text-xl font-black text-stone-900 mt-1" id="resTitulo">Torla ➔ Refugio de Goriz</h2>
+            <h2 class="text-xl font-black text-stone-900 mt-1" id="resTitulo">Pradera de Ordesa ➔ Refugio de Goriz</h2>
             <p class="text-xs text-stone-500" id="resFecha">Fecha: --/--/---- · Salida: --:--</p>
           </div>
           <div class="text-right">
@@ -134,14 +134,14 @@
           </div>
           <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-200">
             <span class="block text-[11px] font-bold text-stone-500 uppercase">Dificultad</span>
-            <span class="text-sm font-black text-stone-800" id="resDificultad">Pendiente</span>
+            <span class="text-sm font-black text-stone-800" id="resDificultad">Estimando</span>
           </div>
         </div>
 
         <div id="alertaSeguridad" class="mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-xs leading-relaxed hidden"></div>
       </div>
 
-      <!-- Listas de Mochila adaptadas -->
+      <!-- Listas de Mochila -->
       <div class="space-y-4">
         <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm card-box">
           <div class="flex justify-between items-center mb-2">
@@ -150,7 +150,7 @@
             </h3>
             <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full" id="contadorInd">0 / 0</span>
           </div>
-          <p class="text-xs text-stone-500 mb-3" id="subtituloInd">Material adaptado al terreno, meteorología y perfil físico.</p>
+          <p class="text-xs text-stone-500 mb-3">Material adaptado al terreno, meteorología y perfil físico.</p>
           <div id="listaInd" class="space-y-2">
             <div class="text-xs text-stone-400 italic p-3 text-center bg-stone-50 rounded-xl border border-stone-100">
               Pulsa en «Analizar Ruta» para confeccionar la mochila a medida.
@@ -235,8 +235,11 @@
     }
 
     async function geolocalizar(sitio) {
+      if (!sitio) return null;
       try {
-        const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(sitio)}&count=1&language=es&format=json`);
+        // Limpiamos términos genéricos de montaña que confunden al geocodificador de núcleos urbanos
+        const terminoLimpio = sitio.replace(/refugio de|refugio|pradera de|pradera|valle de|pico/gi, '').trim();
+        const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(terminoLimpio || sitio)}&count=1&language=es&format=json`);
         const d = await r.json();
         return d.results?.[0] || null;
       } catch(e) { return null; }
@@ -253,19 +256,22 @@
       document.getElementById('resTitulo').innerText = `${orig} ➔ ${dest}`;
       document.getElementById('resFecha').innerText = `Fecha: ${fecha} · Salida: ${hora} h`;
 
+      // 1. Geolocalización con respaldo múltiple (Destino -> Origen -> Torla/Ordesa por defecto)
       let datosMeteoTexto = "No disponible";
-      try {
-        const geo = await geolocalizar(dest);
-        if (geo) {
-          const m = await obtenerMeteo(geo.latitude, geo.longitude);
-          if (m) {
-            datosMeteoTexto = `Temperatura: ${m.temperature_2m}°C, Viento: ${m.wind_speed_10m} km/h, Precipitación: ${m.precipitation} mm`;
-            document.getElementById('resTemp').innerText = `${m.temperature_2m}°C`;
-            document.getElementById('resMeteo').innerText = `Viento: ${m.wind_speed_10m} km/h · Precip: ${m.precipitation} mm`;
-          }
+      let geo = await geolocalizar(dest);
+      if (!geo) geo = await geolocalizar(orig);
+      if (!geo) {
+        // Coordenadas de respaldo en el entorno de Ordesa
+        geo = { latitude: 42.628, longitude: -0.055 };
+      }
+
+      if (geo) {
+        const m = await obtenerMeteo(geo.latitude, geo.longitude);
+        if (m) {
+          datosMeteoTexto = `Temperatura: ${m.temperature_2m}°C, Viento: ${m.wind_speed_10m} km/h, Precipitación: ${m.precipitation} mm`;
+          document.getElementById('resTemp').innerText = `${m.temperature_2m}°C`;
+          document.getElementById('resMeteo').innerText = `Viento: ${m.wind_speed_10m} km/h · Precip: ${m.precipitation} mm`;
         }
-      } catch(err) {
-        console.warn("Meteo no disponible");
       }
 
       const btn = document.getElementById('btnAccion');
@@ -277,7 +283,7 @@ Analiza esta salida planificada:
 - Origen: "${orig}"
 - Destino/Hito: "${dest}"
 - Fecha: ${fecha} (hora de salida: ${hora})
-- Meteorología en destino: ${datosMeteoTexto}
+- Meteorología prevista: ${datosMeteoTexto}
 - Modalidad: ${mod}
 - Condicionantes físicos / salud: "${ctx}"
 
@@ -286,7 +292,7 @@ GENERA LA MOCHILA COMPLETA Y CONTEXTUALIZADA (no una lista genérica):
 2. Adapta la ropa y capas a la temperatura real, viento y riesgo de lluvia.
 3. Si la hora de salida o duración implican riesgo de noche, incluye frontal.
 4. En nutrición/hidratación, ajusta el volumen a la duración, desnivel y temperatura.
-5. Adapta elementos específicos a los condicionantes de salud descritos (ej. pulsómetro, vendajes, descansos, sales).
+5. Adapta elementos específicos a los condicionantes de salud descritos (ej. pulsómetro, descansos, pautas de respiración).
 6. Si la modalidad es "grupo", detalla en la mochila del monitor el botiquín grupal, piezas de recambio de bastones (dragoneras, tacos) y material de seguridad colectiva.
 
 Devuelve EXCLUSIVAMENTE este JSON:
@@ -333,7 +339,6 @@ Devuelve EXCLUSIVAMENTE este JSON:
           alerta.classList.remove('hidden');
         }
 
-        // Pintamos directamente las mochilas personalizadas devueltas por la IA
         pintarItems('listaInd', resJSON.mochila_individual || [], 'ind');
         pintarItems('listaMon', resJSON.mochila_monitor || [], 'mon');
 
