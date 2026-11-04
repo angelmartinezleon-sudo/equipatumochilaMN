@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'Falta la API Key en Vercel' });
+    return res.status(500).json({ error: 'Falta la API Key en las variables de entorno de Vercel' });
   }
 
   try {
@@ -23,8 +23,11 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json(data);
+    }
     return res.status(200).json(data);
   } catch (error) {
-    return res.status(500).json({ error: 'Error al contactar con Gemini' });
+    return res.status(500).json({ error: error.message || 'Error de conexión con Gemini' });
   }
-}
+};
