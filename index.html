@@ -53,7 +53,7 @@
 
         <div>
           <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Destino o Hito</label>
-          <input type="text" id="destino" value="Cola de Caballo" class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700">
+          <input type="text" id="destino" value="Refugio de Goriz" class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -71,11 +71,11 @@
           <label class="block text-xs font-bold text-stone-700 uppercase mb-2">Modalidad</label>
           <div class="grid grid-cols-2 gap-2">
             <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-stone-200 cursor-pointer text-xs font-semibold">
-              <input type="radio" name="modalidad" value="individual" checked onchange="toggleModalidadUI()" class="text-emerald-700 focus:ring-emerald-600">
+              <input type="radio" name="modalidad" value="individual" onchange="toggleModalidadUI()" class="text-emerald-700 focus:ring-emerald-600">
               <span><i class="fa-solid fa-person mr-1 text-emerald-700"></i> Individual</span>
             </label>
             <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-stone-200 cursor-pointer text-xs font-semibold">
-              <input type="radio" name="modalidad" value="grupo" onchange="toggleModalidadUI()" class="text-emerald-700 focus:ring-emerald-600">
+              <input type="radio" name="modalidad" value="grupo" checked onchange="toggleModalidadUI()" class="text-emerald-700 focus:ring-emerald-600">
               <span><i class="fa-solid fa-users mr-1 text-emerald-700"></i> Guía / Grupo</span>
             </label>
           </div>
@@ -83,7 +83,7 @@
 
         <div>
           <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Lesiones, Ritmo o Condicionantes</label>
-          <textarea id="contextoFisico" rows="3" placeholder="Ej: Dos alumnos con molestias en rotuliana; ritmo suave de progresión..." class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700"></textarea>
+          <textarea id="contextoFisico" rows="3" placeholder="Ej: Participante con pulsaciones elevadas..." class="w-full border border-stone-300 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-700"></textarea>
         </div>
 
         <button onclick="analizarRuta()" id="btnAccion" class="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm rounded-xl shadow transition flex items-center justify-center gap-2">
@@ -112,9 +112,9 @@
         <div class="flex flex-wrap justify-between items-start gap-2 border-b border-stone-200 pb-3 mb-4">
           <div>
             <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200" id="badgeModalidad">
-              Ruta Individual
+              Grupo con Monitor
             </span>
-            <h2 class="text-xl font-black text-stone-900 mt-1" id="resTitulo">Torla ➔ Cola de Caballo</h2>
+            <h2 class="text-xl font-black text-stone-900 mt-1" id="resTitulo">Torla ➔ Refugio de Goriz</h2>
             <p class="text-xs text-stone-500" id="resFecha">Fecha: --/--/---- · Salida: --:--</p>
           </div>
           <div class="text-right">
@@ -146,14 +146,14 @@
         <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm card-box">
           <div class="flex justify-between items-center mb-3">
             <h3 class="text-sm font-bold uppercase text-stone-800 flex items-center gap-2" id="tituloMochilaPrincipal">
-              <i class="fa-solid fa-backpack text-emerald-700"></i> Mochila Individual
+              <i class="fa-solid fa-user text-emerald-700"></i> Mochila del Participante
             </h3>
             <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full" id="contadorInd">0 / 0</span>
           </div>
           <div id="listaInd" class="space-y-2"></div>
         </div>
 
-        <div id="bloqueMonitor" class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm card-box hidden">
+        <div id="bloqueMonitor" class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm card-box">
           <div class="flex justify-between items-center mb-2">
             <h3 class="text-sm font-bold uppercase text-amber-900 flex items-center gap-2">
               <i class="fa-solid fa-kit-medical text-amber-600"></i> Mochila del Guía / Monitor
@@ -203,7 +203,7 @@
     function pintarItems(contenedorId, items, tipo) {
       const cont = document.getElementById(contenedorId);
       cont.innerHTML = '';
-      items.forEach((item, idx) => {
+      items.forEach((item) => {
         const div = document.createElement('div');
         div.className = "flex items-center justify-between p-2.5 bg-stone-50 hover:bg-stone-100 rounded-xl border border-stone-200 text-xs transition";
         div.innerHTML = `
@@ -263,27 +263,34 @@
       document.getElementById('resTitulo').innerText = `${orig} ➔ ${dest}`;
       document.getElementById('resFecha').innerText = `Fecha: ${fecha} · Salida: ${hora} h`;
 
-      const geo = await geolocalizar(dest);
-      if (geo) {
-        const m = await obtenerMeteo(geo.latitude, geo.longitude);
-        if (m) {
-          document.getElementById('resTemp').innerText = `${m.temperature_2m}°C`;
-          document.getElementById('resMeteo').innerText = `Viento: ${m.wind_speed_10m} km/h · Precip: ${m.precipitation} mm`;
+      // Meteo
+      try {
+        const geo = await geolocalizar(dest);
+        if (geo) {
+          const m = await obtenerMeteo(geo.latitude, geo.longitude);
+          if (m) {
+            document.getElementById('resTemp').innerText = `${m.temperature_2m}°C`;
+            document.getElementById('resMeteo').innerText = `Viento: ${m.wind_speed_10m} km/h · Precip: ${m.precipitation} mm`;
+          }
         }
+      } catch(err) {
+        console.warn("Meteo no disponible");
       }
 
-      document.getElementById('btnAccion').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analizando con IA segura...';
+      const btn = document.getElementById('btnAccion');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analizando con IA segura...';
+      btn.disabled = true;
 
-      const promptSistema = `Actúa como instructor técnico de marcha nórdica y seguridad en montaña. Analiza la ruta desde "${orig}" hasta "${dest}". Modalidad: ${mod}. Perfil y condicionantes físicos: "${ctx}".
-Responde obligatoriamente en formato JSON válido con esta estructura exacta:
+      const promptSistema = `Analiza como instructor de marcha nórdica la ruta de "${orig}" a "${dest}". Modalidad: ${mod}. Condicionantes: "${ctx}".
+Devuelve exclusivamente un JSON con:
 {
-  "km": "valor numérico con km",
+  "km": "km aprox",
   "desnivel": "+X m",
-  "tiempo": "tiempo estimado en marcha nórdica",
+  "tiempo": "tiempo estimado MN",
   "dificultad": "Baja, Media o Alta",
-  "seguridad": "consejos de técnica de marcha nórdica o seguridad específicos",
+  "seguridad": "consejos técnicos de marcha nórdica y seguridad",
   "extra_individual": [{"text": "elemento específico", "cat": "NW o Seguridad o Salud"}],
-  "extra_monitor": [{"text": "elemento de grupo", "cat": "Seguridad o Gestión"}]
+  "extra_monitor": [{"text": "elemento colectivo", "cat": "Seguridad o Gestión"}]
 }`;
 
       try {
@@ -293,20 +300,17 @@ Responde obligatoriamente en formato JSON válido con esta estructura exacta:
           body: JSON.stringify({ prompt: promptSistema })
         });
 
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error?.message || errData.error || `Error ${response.status} en el servidor`);
-        }
-
         const data = await response.json();
-        const textoRespuesta = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        
-        if (!textoRespuesta) {
-          throw new Error("Gemini no devolvió texto.");
+
+        if (!response.ok) {
+          const errMsg = data.error?.message || data.error || `HTTP ${response.status}`;
+          throw new Error(errMsg);
         }
 
-        const textoLimpio = textoRespuesta.replace(/```json|```/g, '').trim();
-        const resJSON = JSON.parse(textoLimpio);
+        const texto = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!texto) throw new Error("Respuesta vacía del modelo");
+
+        const resJSON = JSON.parse(texto);
 
         document.getElementById('resDesnivel').innerText = `${resJSON.km} · ${resJSON.desnivel}`;
         document.getElementById('resTiempo').innerText = resJSON.tiempo;
@@ -322,13 +326,14 @@ Responde obligatoriamente en formato JSON válido con esta estructura exacta:
         pintarItems('listaMon', [...baseMon, ...(resJSON.extra_monitor || [])], 'mon');
 
         document.getElementById('chatSection').classList.remove('hidden');
-        agregarMensaje('asistente', `He generado la planificación para ${dest}. ¿Deseas hacer alguna consulta técnica sobre bastones, técnica de impulso o descansos?`);
+        agregarMensaje('asistente', `He generado la planificación para ${dest}. ¿Deseas hacer alguna consulta técnica sobre bastones, técnica de impulso o pulsaciones?`);
 
       } catch(e) {
-        console.error("Error capturado:", e);
-        alert(`Aviso del sistema: ${e.message}`);
+        console.error("Error en análisis:", e);
+        alert(`Error al contactar con la IA: ${e.message}`);
       } finally {
-        document.getElementById('btnAccion').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analizar Ruta y Generar Mochilas';
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analizar Ruta y Generar Mochilas';
+        btn.disabled = false;
       }
     }
 
@@ -348,8 +353,6 @@ Responde obligatoriamente en formato JSON válido con esta estructura exacta:
             prompt: `Eres un instructor de marcha nórdica y seguridad en montaña. Responde de forma pedagógica, concisa y rigurosa a: "${msg}"`
           })
         });
-
-        if (!response.ok) throw new Error("Error en la comunicación.");
 
         const data = await response.json();
         const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo obtener respuesta.";
