@@ -8,12 +8,14 @@ module.exports = async (req, res) => {
 
   const { prompt } = req.body || {};
   const apiKey = process.env.GEMINI_API_KEY;
+  // Toma el modelo de la variable de entorno o usa gemini-3.5-flash-lite por defecto
+  const modelName = process.env.IA_MODEL || 'gemini-3.5-flash-lite';
 
   if (!apiKey) {
     return res.status(500).json({ error: 'Falta la API Key en las variables de entorno de Vercel' });
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
@@ -21,7 +23,7 @@ module.exports = async (req, res) => {
     }
   };
 
-  // Reintento automático en caso de congestión de tráfico (429 o 503)
+  // Reintento automático en caso de congestión puntual
   for (let intento = 1; intento <= 3; intento++) {
     try {
       const response = await fetch(url, {
@@ -36,7 +38,7 @@ module.exports = async (req, res) => {
         return res.status(200).json(data);
       }
 
-      // Si Google responde por sobrecarga y aún nos quedan intentos, esperamos 2 segundos
+      // Si Google responde con saturación (429 o 503), espera 2 segundos y reintenta
       if ((response.status === 429 || response.status === 503) && intento < 3) {
         await new Promise(r => setTimeout(r, 2000));
         continue;
