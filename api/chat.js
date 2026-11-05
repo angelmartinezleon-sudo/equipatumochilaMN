@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Falta la API Key en las variables de entorno de Vercel' });
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`;
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
